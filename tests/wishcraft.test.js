@@ -7,6 +7,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { readBirthdaySecrets, todayPayload } from "../scripts/publish-today.mjs";
+import { birthdayScreens, createScreenCycle, SCREEN_DURATION, screenTheme } from "../site/js/birthday-screens.js";
 import { birthdayDay } from "../site/js/calendar.js";
 import { dayTheme, traceStars } from "../site/js/themes.js";
 
@@ -63,6 +64,51 @@ test("the date and scene switch at Zagreb midnight in winter and summer", () => 
   assert.deepEqual(dayTheme(day), dayTheme(late));
   assert.notEqual(dayTheme(late).orbit, dayTheme(morning).orbit);
   assert.notDeepEqual(traceStars(dayTheme(late).seed), traceStars(dayTheme(morning).seed));
+});
+
+test("all five scenes rotate in 20-second steps and resume after pausing", () => {
+  let now = 0;
+  let pending;
+  const updates = [];
+  const cycle = createScreenCycle((state) => updates.push(state), {
+    now: () => now,
+    schedule(callback, duration) {
+      pending = { callback, time: now + duration };
+      return pending;
+    },
+    cancel(timer) { if (timer === pending) pending = undefined; },
+  });
+  const advance = (duration) => {
+    const target = now + duration;
+    while (pending && pending.time <= target) {
+      now = pending.time;
+      pending.callback();
+    }
+    now = target;
+  };
+  assert.equal(SCREEN_DURATION, 20_000);
+  cycle.setPlaying(true);
+  advance(19_999);
+  assert.equal(updates.at(-1).index, 0);
+  advance(1);
+  assert.equal(updates.at(-1).index, 1);
+  advance(4 * SCREEN_DURATION);
+  assert.deepEqual(updates.map(({ index }) => index), [0, 1, 2, 3, 4, 0]);
+  advance(7_000);
+  cycle.setPlaying(false);
+  assert.equal(updates.at(-1).remaining, 13_000);
+  advance(30_000);
+  assert.equal(updates.at(-1).index, 0);
+  cycle.setPlaying(true);
+  advance(13_000);
+  assert.equal(updates.at(-1).index, 1);
+  cycle.select(4);
+  assert.equal(updates.at(-1).index, 4);
+  advance(SCREEN_DURATION);
+  assert.equal(updates.at(-1).index, 0);
+
+  const today = dayTheme(new Date("2026-11-21T16:00:00Z"));
+  assert.equal(new Set(birthdayScreens.map((_, i) => screenTheme(today, i).id)).size, 5);
 });
 
 test("test builds publish a single fictional greeting and production only exports today's matches", async (t) => {

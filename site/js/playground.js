@@ -1,4 +1,5 @@
 import { randomFrom, traceStars } from "./themes.js";
+import { figureOrigin } from "./birthday-screens.js";
 
 export function createPlayground({ stage, chime, scatterFallback }) {
   const get = (id) => document.getElementById(id);
@@ -195,8 +196,8 @@ export function createPlayground({ stage, chime, scatterFallback }) {
     status.textContent = extinguished ? "Želja je poletjela! ✦" : "Svjećica gori. Zaželi želju!";
     director?.setActivity(activity, extinguished);
     if (extinguished) {
-      const wide = stage.clientWidth >= 780;
-      celebrate(wide ? .46 : 0, wide ? .17 : -.14);
+      const [x, y] = figureOrigin(theme, stage.clientWidth);
+      celebrate(x, y + .14);
     }
     chime(extinguished ? "reveal" : "spark");
   });

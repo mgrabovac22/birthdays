@@ -1,4 +1,5 @@
 import { birthdayDay, BIRTHDAY_TIME_ZONE } from "./calendar.js";
+import { birthdayScreens, createScreenCycle, figureOrigin, SCREEN_DURATION, screenTheme } from "./birthday-screens.js";
 import { createPlayground } from "./playground.js";
 import { dayTheme, hashText } from "./themes.js";
 
@@ -11,6 +12,9 @@ const celebrants = byId("celebrants");
 const trigger = byId("stage-trigger");
 const motion = byId("motion-toggle");
 const sound = byId("sound-toggle");
+const steps = byId("screen-steps");
+const progress = byId("screen-progress");
+const transition = byId("scene-transition");
 const genericMessage = message.textContent;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const dateFormat = new Intl.DateTimeFormat("hr-HR", {
@@ -20,6 +24,11 @@ const dateFormat = new Intl.DateTimeFormat("hr-HR", {
 let paused = reducedMotion.matches;
 let motionOverride = false;
 let theme;
+let dailyTheme;
+let screenIndex = 0;
+let progressAnimation;
+let transitionAnimation;
+let greetingTransition;
 let director;
 let day;
 let dateTimer;
@@ -34,6 +43,64 @@ let lastChime = -Infinity;
 let brush;
 let dragged = false;
 const playground = createPlayground({ stage, chime: playChime, scatterFallback });
+const screenCycle = createScreenCycle(renderCycle);
+steps.replaceChildren(...birthdayScreens.map((screen, index) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = screen.symbol;
+  button.setAttribute("aria-label", screen.name);
+  button.title = screen.name;
+  button.addEventListener("click", () => screenCycle.select(index));
+  return button;
+}));
+
+function applyScreenTheme() {
+  theme = screenTheme(dailyTheme, screenIndex);
+  stage.dataset.screen = theme.id;
+  stage.style.setProperty("--sky", theme.sky);
+  stage.style.setProperty("--glow", theme.glow);
+  stage.style.setProperty("--accent", theme.colors[0]);
+  stage.style.setProperty("--gold", theme.colors[3]);
+  stage.style.setProperty("--art-hue", `${theme.hue}deg`);
+  stage.style.setProperty("--wide-figure-x", `${50 + theme.wide[0] * 50}%`);
+  stage.style.setProperty("--wide-figure-y", `${50 - theme.wide[1] * 50}%`);
+  stage.style.setProperty("--narrow-figure-x", `${50 + theme.narrow[0] * 50}%`);
+  stage.style.setProperty("--narrow-figure-y", `${50 - theme.narrow[1] * 50}%`);
+  byId("scene-name").textContent = theme.name;
+  byId("fallback-symbol").textContent = theme.symbol;
+  byId("screen-counter").textContent = `${screenIndex + 1} / ${birthdayScreens.length}`;
+  [...steps.children].forEach((button, index) => button.setAttribute("aria-current", index === screenIndex ? "step" : "false"));
+  director?.setTheme(theme);
+  playground.setTheme(theme);
+}
+
+function renderCycle({ index, remaining, playing }) {
+  progressAnimation?.cancel();
+  const portion = 1 - remaining / SCREEN_DURATION;
+  progress.style.transform = `scaleX(${portion})`;
+  if (playing) {
+    progressAnimation = progress.animate(
+      [{ transform: `scaleX(${portion})` }, { transform: "scaleX(1)" }],
+      { duration: remaining, fill: "forwards" },
+    );
+  }
+  if (index === screenIndex || !dailyTheme) return;
+  screenIndex = index;
+  if (!paused) {
+    transitionAnimation?.cancel();
+    transitionAnimation = transition.animate([
+      { opacity: .7, transform: "scale(1.13)" },
+      { opacity: 0, transform: "scale(1)" },
+    ], { duration: 780, easing: "ease-out" });
+    greetingTransition?.cancel();
+    greetingTransition = greeting.animate(
+      [{ opacity: .2, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0)" }],
+      { duration: 590, easing: "ease-out" },
+    );
+  }
+  applyScreenTheme();
+  reveal();
+}
 
 function setMotion(value) {
   paused = value;
@@ -42,6 +109,8 @@ function setMotion(value) {
   motion.title = paused ? "Nastavi animacije" : "Zaustavi animacije";
   motion.setAttribute("aria-label", motion.title);
   if (paused) {
+    transitionAnimation?.cancel();
+    greetingTransition?.cancel();
     stage.style.setProperty("--pan-x", "0px");
     stage.style.setProperty("--pan-y", "0px");
     byId("fallback-sparkles").replaceChildren();
@@ -49,6 +118,7 @@ function setMotion(value) {
   }
   director?.setPaused(paused);
   playground.setPaused(paused);
+  screenCycle.setPlaying(currentDesign !== undefined && !paused && !document.hidden);
 }
 
 function playChime(kind, step) {
@@ -111,8 +181,8 @@ function reveal() {
   stage.classList.add("is-open");
   director?.reveal(currentDesign);
   if (!director?.available && !paused) {
-    const wide = stage.clientWidth >= 780;
-    scatterFallback(wide ? .46 : 0, wide ? .02 : -.26);
+    const [x, y] = figureOrigin(theme, stage.clientWidth);
+    scatterFallback(x, y);
   }
   playChime("reveal");
 }
@@ -130,6 +200,7 @@ function showGreeting(index) {
   greeting.classList.remove("is-revealing");
   requestAnimationFrame(() => greeting.classList.add("is-revealing"));
   reveal();
+  screenCycle.setPlaying(!paused && !document.hidden);
 }
 
 function setCards(nextCards) {
@@ -186,18 +257,11 @@ function updateDay() {
     request = undefined;
     lastFetch = -Infinity;
     day = nextDay;
-    theme = dayTheme(now);
+    dailyTheme = dayTheme(now);
     const today = byId("today");
     today.dateTime = day.iso;
     today.textContent = dateFormat.format(now);
-    stage.style.setProperty("--sky", theme.sky);
-    stage.style.setProperty("--glow", theme.glow);
-    stage.style.setProperty("--accent", theme.colors[0]);
-    stage.style.setProperty("--gold", theme.colors[3]);
-    stage.style.setProperty("--art-hue", `${theme.hue}deg`);
-    byId("scene-name").textContent = theme.name;
-    director?.setTheme(theme);
-    playground.setTheme(theme);
+    applyScreenTheme();
     if (changedDay) {
       currentDesign = undefined;
       setCards([]);
@@ -292,11 +356,16 @@ window.addEventListener("pagehide", () => {
   request = undefined;
   clearTimeout(dateTimer);
   setSound(false);
+  screenCycle.setPlaying(false);
 });
-window.addEventListener("pageshow", updateDay);
+window.addEventListener("pageshow", () => {
+  updateDay();
+  screenCycle.setPlaying(currentDesign !== undefined && !paused && !document.hidden);
+});
 window.addEventListener("online", updateDay);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) updateDay();
+  screenCycle.setPlaying(currentDesign !== undefined && !paused && !document.hidden);
 });
 setMotion(paused);
 updateDay();

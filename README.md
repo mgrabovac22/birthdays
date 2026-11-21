@@ -1,6 +1,6 @@
 # Wishcraft
 
-Wishcraft otvara rođendansku čestitku preko cijelog zaslona čim posjetitelj otvori GitHub Pages stranicu. Ako danas netko slavi, odmah se prikažu njegovo ime, poruka i 3D iznenađenje. Kad nema slavljenika, prikazuje se opća čestitka. U sceni možeš crtati zvjezdanom prašinom, povezivati zvijezde, ugasiti svjećicu, pokrenuti meteore ili ponoviti animaciju.
+Wishcraft otvara rođendansku čestitku preko cijelog zaslona čim posjetitelj otvori GitHub Pages stranicu. Ako danas netko slavi, odmah se prikažu njegovo ime i poruka. Kad nema slavljenika, prikazuje se opća čestitka. Pet 3D scena izmjenjuje se svakih 20 sekundi i zatim kreće ispočetka. Scene možeš odabrati i ručno, a uz njih možeš crtati zvjezdanom prašinom, povezivati zvijezde, ugasiti svjećicu, pokrenuti meteore ili ponoviti animaciju. Pauza animacija zaustavlja i izmjenu scena.
 
 ## Dodaj jednu osobu
 

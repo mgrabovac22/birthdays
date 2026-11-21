@@ -59,8 +59,8 @@ button:focus-visible { outline: 2px solid #ffe2ad; outline-offset: 4px; }
   --art-hue: 0deg;
   --pan-x: 0px;
   --pan-y: 0px;
-  --figure-x: 73%;
-  --figure-y: 49%;
+  --figure-x: var(--wide-figure-x, 73%);
+  --figure-y: var(--wide-figure-y, 49%);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -153,6 +153,14 @@ button:focus-visible { outline: 2px solid #ffe2ad; outline-offset: 4px; }
 .stage-shade {
   z-index: 2;
   background: linear-gradient(90deg, #160c21ab, #170d244f 46%, transparent 69%), linear-gradient(0deg, #130918aa, transparent 23%, transparent 86%, #140a1a83);
+}
+.scene-transition {
+  position: absolute;
+  z-index: 4;
+  inset: -10%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at var(--figure-x) var(--figure-y), color-mix(in srgb, var(--gold) 58%, transparent), transparent 58%);
 }
 .stage-trigger {
   position: absolute;
@@ -282,6 +290,34 @@ button:focus-visible { outline: 2px solid #ffe2ad; outline-offset: 4px; }
 .caption-label { color: #ecc3da; font-size: .68rem; letter-spacing: .16em; font-weight: 800; }
 .interaction-hint { margin: 0; color: #e5cddd; font-size: .8rem; }
 .interaction-hint span { color: var(--gold); }
+.screen-picker { align-self: end; pointer-events: none; }
+.screen-steps { display: flex; gap: 5px; }
+.screen-steps button {
+  display: grid;
+  width: 33px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #f3c1dd4d;
+  border-radius: 9px;
+  background: #2a1539dc;
+  color: #f8daeb;
+  font: 1rem/1 system-ui, sans-serif;
+  pointer-events: auto;
+}
+.screen-steps button:hover, .screen-steps button[aria-current="step"] {
+  border-color: var(--gold);
+  background: var(--accent);
+  color: #211129;
+}
+.screen-progress {
+  height: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f3c1dd38;
+}
+.screen-progress span { display: block; height: 100%; transform: scaleX(0); transform-origin: left; background: var(--accent); }
 .playground { max-width: 100%; }
 .playground-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .sky-action {
@@ -459,10 +495,82 @@ button:focus-visible { outline: 2px solid #ffe2ad; outline-offset: 4px; }
 .pause::before { inset: 2px 4px; border-inline: 2px solid currentColor; border-radius: 1px; }
 .stage-control[aria-pressed="true"] .pause::before { inset: 2px 3px 2px 5px; border: 0; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
 
+.stage[data-screen="cake"] .reveal-backdrop {
+  background: radial-gradient(ellipse at 18% 56%, #a053424d, transparent 63%), radial-gradient(ellipse at 0 0, #733d3d, transparent 64%), linear-gradient(115deg, #3b1e2b, var(--sky) 67%);
+}
+.stage[data-screen="cake"] .orbital-lines i { inset: 24% 3%; transform: rotate(7deg); border-color: #ffd5a561; }
+.stage[data-screen="cake"] .orbital-lines i:nth-child(2) { inset: 39% 1%; transform: rotate(-8deg); }
+.stage[data-screen="cake"] .orbital-lines i:nth-child(3) { inset: 14% 9%; transform: rotate(14deg); }
+.stage[data-screen="aurora"] .reveal-backdrop {
+  background: radial-gradient(ellipse at 48% 67%, #2f987a69, transparent 62%), radial-gradient(ellipse at 77% 35%, #2a665f91, transparent 54%), linear-gradient(150deg, #0e2c3b, var(--sky) 65%);
+}
+.stage[data-screen="aurora"] .reveal-backdrop::after {
+  opacity: .5;
+  background: repeating-linear-gradient(119deg, transparent 0% 12%, #73eadc31 18%, #a2b3ef21 20%, transparent 28%);
+  filter: blur(24px);
+  animation: aurora-drift 16s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift { to { transform: translateX(14%) skewY(14deg); } }
+.stage[data-screen="aurora"] .orbital-lines { opacity: .33; }
+.stage[data-screen="aurora"] .greeting-copy, .stage[data-screen="fireworks"] .greeting-copy {
+  text-shadow: 0 1px 3px #100b23, 0 0 18px #100b23;
+}
+.stage[data-screen="gift"] .reveal-backdrop {
+  background: repeating-linear-gradient(127deg, transparent 0 90px, #8b9dde14 94px, transparent 97px 161px), radial-gradient(ellipse at 71% 48%, #55558fa2, transparent 64%), linear-gradient(145deg, #1d2146, var(--sky) 61%);
+}
+.stage[data-screen="gift"] .orbital-lines i { border-radius: 40% 18% 46% 22%; transform: rotate(-27deg); }
+.stage[data-screen="gift"] .orbital-lines i:nth-child(2) { transform: rotate(-37deg); }
+.stage[data-screen="gift"] .orbital-lines i:nth-child(3) { transform: rotate(14deg); }
+.stage[data-screen="fireworks"] .reveal-backdrop {
+  background: radial-gradient(ellipse at 20% 19%, #e37e5339, transparent 32%), radial-gradient(ellipse at 75% 8%, #e0536c4e, transparent 45%), radial-gradient(ellipse at 50% 27%, #aa456473, transparent 63%), linear-gradient(158deg, var(--sky), #201021);
+}
+.stage[data-screen="fireworks"] .orbital-lines { opacity: .32; }
+.stage[data-screen="fireworks"] .orbital-lines i { inset: -3% 17%; transform: rotate(-19deg); }
+
+@media (min-width: 780px) {
+  .stage[data-screen="cake"] .greeting { justify-self: end; width: min(49%, 58rem); padding-left: 10px; }
+  .stage[data-screen="cake"] .stage-shade {
+    background: linear-gradient(270deg, #1f101daa, transparent 65%), linear-gradient(0deg, #190f19a3, transparent 29%);
+  }
+  .stage[data-screen="cake"] .trace-layer, .stage[data-screen="cake"] .wish-layer { inset: 9% 47% 11% 0; }
+  .stage[data-screen="aurora"] .greeting, .stage[data-screen="fireworks"] .greeting {
+    width: min(88%, 62rem);
+    justify-self: center;
+    padding-left: 0;
+    text-align: center;
+  }
+  .stage[data-screen="aurora"] .greeting { align-self: start; margin-top: clamp(32px, 6vh, 88px); }
+  .stage[data-screen="fireworks"] .greeting { align-self: end; margin-bottom: clamp(30px, 6vh, 90px); }
+  .stage[data-screen="aurora"] .eyebrow, .stage[data-screen="fireworks"] .eyebrow,
+  .stage[data-screen="aurora"] .celebrants, .stage[data-screen="fireworks"] .celebrants { justify-content: center; }
+  .stage[data-screen="aurora"] .greeting h1, .stage[data-screen="fireworks"] .greeting h1 {
+    font-size: clamp(3.8rem, 7.3vw, 8.4rem);
+    line-height: .93;
+    margin-bottom: 18px;
+  }
+  .stage[data-screen="aurora"] .greeting h1 br, .stage[data-screen="fireworks"] .greeting h1 br { display: none; }
+  .stage[data-screen="aurora"] .greeting-copy, .stage[data-screen="fireworks"] .greeting-copy {
+    margin-inline: auto;
+    border: 0;
+    padding-left: 0;
+  }
+  .stage[data-screen="aurora"] .stage-shade, .stage[data-screen="fireworks"] .stage-shade {
+    background: linear-gradient(0deg, #130d23dc, transparent 35%, transparent 63%, #0a1223a2);
+  }
+  .stage[data-screen="aurora"] .stage-shade {
+    background: linear-gradient(180deg, #0b1525dd, #0f192c75 36%, transparent 53%, transparent 72%, #130d23da);
+  }
+  .stage[data-screen="aurora"] .trace-layer, .stage[data-screen="aurora"] .wish-layer { inset: 36% 21% 11%; }
+  .stage[data-screen="fireworks"] .trace-layer, .stage[data-screen="fireworks"] .wish-layer { inset: 3% 19% 48%; }
+}
+@media (max-width: 1099px) {
+  .stage-footer { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .playground { grid-column: 1 / -1; justify-self: end; }
+}
 @media (max-width: 779px) {
   .stage {
-    --figure-x: 50%;
-    --figure-y: 63%;
+    --figure-x: var(--narrow-figure-x, 50%);
+    --figure-y: var(--narrow-figure-y, 63%);
     padding: 18px max(18px, 5vw) 22px;
   }
   .stage-header { gap: 6px; }
@@ -486,6 +594,14 @@ button:focus-visible { outline: 2px solid #ffe2ad; outline-offset: 4px; }
   .playground-status { text-align: left; }
   .trace-layer, .wish-layer { inset: 42% 0 12%; }
   .wish-button { top: 78%; }
+  .screen-steps { gap: 3px; }
+  .screen-steps button { width: 26px; height: 34px; font-size: .86rem; }
+  .stage[data-screen="aurora"] .greeting { text-align: center; }
+  .stage[data-screen="aurora"] .eyebrow, .stage[data-screen="fireworks"] .eyebrow { justify-content: center; }
+  .stage[data-screen="aurora"] .greeting-copy, .stage[data-screen="fireworks"] .greeting-copy { border: 0; padding-left: 0; margin-inline: auto; }
+  .stage[data-screen="fireworks"] .greeting { padding: clamp(180px, 33svh, 310px) 0 0; text-align: center; }
+  .stage[data-screen="fireworks"] .stage-shade { background: linear-gradient(0deg, #180c24ca, #160c21ab 36%, transparent 66%, #25112849); }
+  .stage[data-screen="fireworks"] .trace-layer, .stage[data-screen="fireworks"] .wish-layer { inset: 9% 0 43%; }
 }
 @media (max-width: 365px) {
   .date-pill span { display: none; }

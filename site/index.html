@@ -19,8 +19,9 @@
       <div class="orbital-lines" aria-hidden="true"><i></i><i></i><i></i><span>✦</span><b>✧</b></div>
       <div class="stage-canvas" id="stage-canvas" aria-hidden="true"></div>
       <div class="fallback-sparkles" id="fallback-sparkles" aria-hidden="true"></div>
-      <div class="fallback-reveal" aria-hidden="true"><span>✦</span></div>
+      <div class="fallback-reveal" aria-hidden="true"><span id="fallback-symbol">✦</span></div>
       <div class="sky-effects" id="sky-effects" aria-hidden="true"></div>
+      <div class="scene-transition" id="scene-transition" aria-hidden="true"></div>
       <button class="stage-trigger" id="stage-trigger" type="button" aria-label="Rasprši zvjezdanu prašinu"></button>
       <div class="stage-shade" aria-hidden="true"></div>
 
@@ -39,7 +40,7 @@
 
       <article class="greeting" id="greeting" aria-labelledby="greeting-title">
         <p class="eyebrow"><span aria-hidden="true">✦</span> <span id="greeting-label">ROĐENDANSKA ČESTITKA</span></p>
-        <h1 id="greeting-title">Sretan<br><em>rođendan!</em></h1>
+        <h1 id="greeting-title">Sretan<br> <em>rođendan!</em></h1>
         <div class="greeting-copy" aria-live="polite">
           <p class="recipient" id="recipient" hidden></p>
           <p class="message" id="message">Neka ti današnji dan donese nešto lijepo za pamćenje i barem jednu želju koja će se ispuniti.</p>
@@ -58,10 +59,14 @@
 
       <footer class="stage-footer">
         <div class="sky-caption">
-          <span class="caption-label">DANAŠNJE NEBO</span>
-          <h2 id="scene-name">Zvjezdani valcer</h2>
+          <span class="caption-label" id="screen-counter">1 / 5</span>
+          <h2 id="scene-name">Zvjezdana kuverta</h2>
           <p class="interaction-hint"><span aria-hidden="true">✧</span> Dodirni nebo ili povuci za zvjezdanu prašinu.</p>
         </div>
+        <nav class="screen-picker" id="screen-picker" aria-label="Scene čestitke">
+          <div class="screen-steps" id="screen-steps"></div>
+          <div class="screen-progress" aria-hidden="true"><span id="screen-progress"></span></div>
+        </nav>
         <section class="playground" aria-label="Igra pod zvijezdama">
           <p class="playground-status" id="playground-status" role="status"></p>
           <div class="playground-actions">

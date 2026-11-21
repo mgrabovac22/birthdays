@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { figureOrigin } from "./birthday-screens.js";
 import { randomFrom } from "./themes.js";
 import { createSkyEffects } from "./sky-effects.js";
 
@@ -186,6 +187,120 @@ function makeJewel(group, colors) {
     jewel.rotation.z = Math.sin(time * 1.2) * .21;
     rings[0].rotation.set(.45, time * .47, time * .37);
     rings[1].rotation.set(-.75, time * -.38, time * -.51);
+  };
+}
+
+function makeAuroraCurtain(group, color, layer) {
+  const segments = 60;
+  const positions = new THREE.BufferAttribute(new Float32Array((segments + 1) * 6), 3);
+  const shades = new THREE.BufferAttribute(new Float32Array((segments + 1) * 6), 3);
+  const geometry = new THREE.BufferGeometry();
+  const tint = new THREE.Color(color);
+  const indices = [];
+  for (let i = 0; i <= segments; i += 1) {
+    const falloff = Math.sin(i / segments * Math.PI);
+    shades.setXYZ(i * 2, tint.r * falloff, tint.g * falloff, tint.b * falloff);
+    shades.setXYZ(i * 2 + 1, tint.r * .035 * falloff, tint.g * .035 * falloff, tint.b * .035 * falloff);
+    if (i < segments) indices.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 2, i * 2 + 1, i * 2 + 3);
+  }
+  geometry.setIndex(indices);
+  geometry.setAttribute("position", positions);
+  geometry.setAttribute("color", shades);
+  const material = new THREE.MeshBasicMaterial({
+    vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .52,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const curtain = mesh(group, geometry, material);
+  curtain.frustumCulled = false;
+  return (time) => {
+    for (let i = 0; i <= segments; i += 1) {
+      const fraction = i / segments;
+      const x = (fraction - .5) * (7.6 + layer * .35);
+      const wave = Math.cos(fraction * 9 - time * .76 + layer * 1.8);
+      const y = .75 + wave * (.5 + layer * .12) + .26 * layer;
+      const z = -1.65 + .72 * Math.cos(fraction * 8.8 + .8 * layer + time * .5);
+      positions.setXYZ(i * 2, x, y, z);
+      positions.setXYZ(i * 2 + 1, x + .45 * wave, y + Math.sin(fraction * Math.PI) * (1.35 + .24 * wave), z - .58);
+    }
+    positions.needsUpdate = true;
+  };
+}
+
+function makePlanet(group, colors, rng) {
+  const world = new THREE.Group();
+  group.add(world);
+  const planet = mesh(world, new THREE.SphereGeometry(1.18, 50, 32), lacquer(colors[2], .12));
+  const bands = [colors[0], colors[1], colors[3]].map((color) => lacquer(color, .12));
+  for (let i = 0; i < 13; i += 1) {
+    const y = (i - 6) * .153;
+    const radius = Math.sqrt(1.18 ** 2 - y ** 2);
+    const stripe = mesh(planet, new THREE.TorusGeometry(radius, .018 + rng() * .064, 9, 60), bands[i % bands.length], 0, y);
+    stripe.rotation.x = Math.PI / 2;
+  }
+  const equator = new THREE.Group();
+  equator.rotation.set(1.06, -.37, -.25);
+  world.add(equator);
+  for (let i = 0; i < 5; i += 1) {
+    const radius = 1.42 + i * .102;
+    const band = new THREE.MeshBasicMaterial({
+      color: colors[i % colors.length], side: THREE.DoubleSide, transparent: true, opacity: .72 - .09 * i, depthWrite: false,
+    });
+    mesh(equator, new THREE.RingGeometry(radius, radius + .036 + (i % 2) * .029, 90), band);
+  }
+  const moon = mesh(world, new THREE.IcosahedronGeometry(.235, 1), lacquer(colors[3], .28));
+  const curtains = [2, 0, 1].map((color, layer) => makeAuroraCurtain(group, colors[color], layer));
+  return (time) => {
+    world.rotation.set(.11, time * .20, Math.sin(time * .45) * .14);
+    planet.rotation.z = -.38;
+    moon.position.set(Math.cos(time * 1.05) * 2.24, .53 * Math.sin(time * 1.05), Math.sin(time * 1.05) * 1.55);
+    moon.rotation.y = time * .8;
+    for (const curtain of curtains) curtain(time);
+  };
+}
+
+function makeFireworks(group, colors, rng) {
+  const core = mesh(group, new THREE.IcosahedronGeometry(.43, 0), lacquer(colors[3], .35));
+  const bursts = Array.from({ length: 3 }, (_, layer) => {
+    const directions = new Float32Array(58 * 3);
+    const streaks = new Float32Array(58 * 6);
+    const shades = new Float32Array(58 * 6);
+    for (let i = 0; i < 58; i += 1) {
+      const phi = i * 2.4 + layer;
+      const y = 1 - (2 * (i + .5)) / 58;
+      const radial = Math.sqrt(1 - y * y);
+      const length = .7 + rng() * .36;
+      const x = Math.cos(phi) * radial * length;
+      const z = Math.sin(phi) * radial * length;
+      directions.set([x, y * length, z], i * 3);
+      streaks.set([x * .64, y * length * .64, z * .64, x, y * length, z], i * 6);
+      const tint = new THREE.Color(colors[(i + layer) % colors.length]).convertLinearToSRGB();
+      shades.set([tint.r * .19, tint.g * .19, tint.b * .19, tint.r, tint.g, tint.b], i * 6);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(streaks, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(shades, 3));
+    const material = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .86 });
+    const sparks = new THREE.LineSegments(geometry, material);
+    const glitter = new THREE.BufferGeometry();
+    glitter.setAttribute("position", new THREE.BufferAttribute(directions, 3));
+    const glow = new THREE.PointsMaterial({ color: colors[layer], size: .071, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+    sparks.add(new THREE.Points(glitter, glow));
+    sparks.position.set((layer - 1) * 1.08, layer === 1 ? .18 : -.26, layer * -.12);
+    group.add(sparks);
+    return { sparks, material, glow };
+  });
+  return (time) => {
+    core.rotation.set(time * .8, time * .62, time * .37);
+    core.scale.setScalar(1 + .23 * Math.sin(time * 3.2));
+    bursts.forEach(({ sparks, material, glow }, index) => {
+      const step = (time * .43 + .22 + index * .325) % 1;
+      const size = .28 + 1.73 * Math.sin(step * Math.PI / 2);
+      const intensity = Math.sin(step * Math.PI) ** .63;
+      sparks.scale.setScalar(size);
+      sparks.rotation.set(time * .29 + index * .7, time * .24 + index, time * .17);
+      material.opacity = .88 * intensity;
+      glow.opacity = .96 * intensity;
+    });
   };
 }
 
@@ -465,7 +580,7 @@ export function createScene(host, options) {
   const rim = new THREE.DirectionalLight("#ffb4e2", 3.2);
   const keyLight = new THREE.DirectionalLight("#fff0d2", 3.25);
   const fill = new THREE.DirectionalLight("#b598ff", 1.3);
-  const builders = [makeCake, makeGift, makeJewel];
+  const builders = { envelope: makeJewel, cake: makeCake, aurora: makePlanet, gift: makeGift, fireworks: makeFireworks };
   let theme;
   let colors;
   let paused = options.paused;
@@ -505,8 +620,8 @@ export function createScene(host, options) {
     const palette = theme.colors.slice();
     let offset = Math.floor(rng() * palette.length);
     while (offset-- > 0) palette.push(palette.shift());
-    const stationery = makeEnvelope(envelope, palette, cardSeed);
-    const centerpieceMove = builders[cardSeed % builders.length](centerpiece, palette, rng);
+    const stationery = theme.id === "envelope" ? makeEnvelope(envelope, palette, cardSeed) : undefined;
+    const centerpieceMove = builders[theme.id](centerpiece, palette, rng);
     animators = { ...stationery, centerpieceMove };
   }
 
@@ -524,22 +639,27 @@ export function createScene(host, options) {
     camera.position.x = viewOffset.x * .48;
     camera.position.y = viewOffset.y * .32;
     camera.lookAt(0, 0, 0);
-    envelope.visible = opened && !activity && time < 1.65;
-    centerpiece.visible = opened && !activity && time > .64;
+    const hasEnvelope = theme.id === "envelope";
+    const introTime = hasEnvelope ? .64 : .03;
+    envelope.visible = hasEnvelope && opened && !activity && time < 1.65;
+    centerpiece.visible = opened && !activity && time > introTime;
     if (opened) {
       const { card, flap, seal, centerpieceMove } = animators;
-      const rise = smooth(.21, .98, time);
-      const flight = smooth(.91, 1.65, time);
-      envelope.position.set(flight * -4, Math.sin(time * 3) * .075 - flight * 4.2 - .21, flight * .8);
-      envelope.rotation.set(-.09 + flight * -.48, .13 + flight * .63, .14 + .28 * flight);
-      envelope.scale.setScalar((.82 + smooth(0, .33, time) * .18) * (1 - .46 * flight));
-      flap.rotation.x = -2.88 * smooth(.13, .71, time);
-      seal.visible = time < .28;
-      card.position.set(0, rise * 2.9 - .14, -.09 + rise * .28);
-      card.rotation.z = -.22 * rise;
-      const bloom = smooth(.64, 1.48, time);
+      if (hasEnvelope) {
+        const rise = smooth(.21, .98, time);
+        const flight = smooth(.91, 1.65, time);
+        envelope.position.set(flight * -4, Math.sin(time * 3) * .075 - flight * 4.2 - .21, flight * .8);
+        envelope.rotation.set(-.09 + flight * -.48, .13 + flight * .63, .14 + .28 * flight);
+        envelope.scale.setScalar((.82 + smooth(0, .33, time) * .18) * (1 - .46 * flight));
+        flap.rotation.x = -2.88 * smooth(.13, .71, time);
+        seal.visible = time < .28;
+        card.position.set(0, rise * 2.9 - .14, -.09 + rise * .28);
+        card.rotation.z = -.22 * rise;
+      }
+      const bloom = smooth(introTime, introTime + .84, time);
       centerpiece.position.set(0, -.19 + Math.sin(elapsed * 1.72) * .15 - (1 - bloom) * 1.75, .15);
-      centerpiece.rotation.set(.08 - viewOffset.y * .16, elapsed * .44 + viewOffset.x * .25, .055 * Math.sin(elapsed));
+      const spin = theme.id === "aurora" ? .07 * Math.sin(elapsed * .5) : elapsed * .44;
+      centerpiece.rotation.set(.08 - viewOffset.y * .16, spin + viewOffset.x * .25, .055 * Math.sin(elapsed));
       centerpiece.scale.setScalar(.26 + bloom * .74 + .13 * Math.sin(Math.PI * bloom));
       centerpieceMove(elapsed, bloom);
       if (!didBurst && time > .91 && !paused && !activity) {
@@ -590,9 +710,9 @@ export function createScene(host, options) {
     camera.position.z = clamp(10.5 / camera.aspect, 12.5, 27);
     const halfHeight = camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     const halfWidth = halfHeight * camera.aspect;
-    const wide = width >= 780;
-    const scale = wide ? clamp(halfWidth / 4.75, .79, 1.38) : Math.min(1.26, halfWidth * .37);
-    figure.position.set(wide ? halfWidth * .46 : 0, halfHeight * (wide ? .02 : -.26), 0);
+    const [x, y, magnitude] = figureOrigin(theme, width);
+    const scale = magnitude * (width >= 780 ? clamp(halfWidth / 4.75, .79, 1.38) : Math.min(1.26, halfWidth * .37));
+    figure.position.set(halfWidth * x, halfHeight * y, 0);
     figure.scale.setScalar(scale);
     skyEffects.placeCandle(figure.position, scale);
     sky.object.scale.set(Math.max(1, halfWidth / 6), Math.max(1, halfHeight / 5), 1);
@@ -609,11 +729,10 @@ export function createScene(host, options) {
     constellations.setTheme(theme);
     skyEffects.setTheme(theme);
     makeCardObjects();
-    paint();
+    resize();
   }
 
   setTheme(options.theme);
-  resize();
   new ResizeObserver(resize).observe(host);
   new IntersectionObserver(([entry]) => {
     onScreen = entry.isIntersecting;
