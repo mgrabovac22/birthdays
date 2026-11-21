@@ -11,7 +11,7 @@ await Promise.all(["assets", "js", "licenses"].map((folder) => mkdir(join(dist, 
 
 const sources = [
   "index.html", "styles.css", "assets/star.png", "assets/celestial-envelope.webp",
-  "js/app.js", "js/birthday-screens.js", "js/calendar.js", "js/playground.js", "js/themes.js",
+  "js/app.js", "js/birthday-screens.js", "js/calendar.js", "js/gift-game.js", "js/playground.js", "js/themes.js",
 ];
 const fontSources = {
   "@fontsource-variable/dm-sans": ["dm-sans-latin-wght-normal.woff2", "dm-sans-latin-ext-wght-normal.woff2"],

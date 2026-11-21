@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { figureOrigin } from "./birthday-screens.js";
+import { createNameMarquee } from "./name-marquee.js";
+import { createPartyAtmosphere } from "./party-atmosphere.js";
 import { randomFrom } from "./themes.js";
 import { createSkyEffects } from "./sky-effects.js";
 
@@ -573,6 +575,8 @@ export function createScene(host, options) {
   const constellations = makeConstellations(scene);
   const bursts = confetti(scene);
   const skyEffects = createSkyEffects(scene);
+  const party = createPartyAtmosphere(scene);
+  const marquee = createNameMarquee(scene);
   const figure = new THREE.Group();
   const envelope = new THREE.Group();
   const centerpiece = new THREE.Group();
@@ -593,6 +597,10 @@ export function createScene(host, options) {
   let didBurst = false;
   let nextFirework = Infinity;
   let nextMeteor = Infinity;
+  let nameBurst = false;
+  let halfWidth = 4;
+  let halfHeight = 4;
+  let wide = true;
   let cardSeed;
   let animators;
   let activity;
@@ -635,11 +643,13 @@ export function createScene(host, options) {
     orbits.render(elapsed, theme, opened, anchor, figure.scale.x);
     constellations.render(elapsed, opened && !activity);
     skyEffects.render(elapsed, camera.aspect, camera.position.z, paused);
+    party.render(elapsed, time, halfWidth, halfHeight, opened, activity);
     viewOffset.lerp(aim, paused ? 1 : 1 - Math.exp(-7.5 * delta));
     camera.position.x = viewOffset.x * .48;
     camera.position.y = viewOffset.y * .32;
     camera.lookAt(0, 0, 0);
     const hasEnvelope = theme.id === "envelope";
+    marquee.render(time, hasEnvelope && opened && !activity, halfWidth, halfHeight, camera.position.z, wide, anchor);
     const introTime = hasEnvelope ? .64 : .03;
     envelope.visible = hasEnvelope && opened && !activity && time < 1.65;
     centerpiece.visible = opened && !activity && time > introTime;
@@ -669,8 +679,13 @@ export function createScene(host, options) {
       }
       if (time > nextFirework && !paused && !activity) {
         const side = Math.sin(elapsed * 7.8) > 0 ? -1 : 1;
-        bursts.burst(anchor.x + side * (1.65 + Math.random() * 1.55), anchor.y + .8 + Math.random() * 1.15, .3, 41, 3, colors);
-        nextFirework = time + 3.7 + Math.random() * 2.3;
+        bursts.burst(side * halfWidth * (.50 + Math.random() * .32), halfHeight * (.03 + Math.random() * .26), .3, 53, 3.7, colors);
+        bursts.burst(-side * halfWidth * .62, halfHeight * .29, .5, 31, 2.7, colors);
+        nextFirework = time + 1.8 + Math.random() * 1.0;
+      }
+      if (hasEnvelope && !nameBurst && !activity && !paused && time > 2.04) {
+        nameBurst = true;
+        bursts.burst(halfWidth * (wide ? .17 : 0), halfHeight * (wide ? .45 : -.18), 2.5, 95, 4.7, colors);
       }
       if (elapsed > nextMeteor && !paused && !activity) {
         skyEffects.shower(theme, elapsed);
@@ -708,8 +723,9 @@ export function createScene(host, options) {
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.position.z = clamp(10.5 / camera.aspect, 12.5, 27);
-    const halfHeight = camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const halfWidth = halfHeight * camera.aspect;
+    halfHeight = camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    halfWidth = halfHeight * camera.aspect;
+    wide = width >= 780;
     const [x, y, magnitude] = figureOrigin(theme, width);
     const scale = magnitude * (width >= 780 ? clamp(halfWidth / 4.75, .79, 1.38) : Math.min(1.26, halfWidth * .37));
     figure.position.set(halfWidth * x, halfHeight * y, 0);
@@ -728,6 +744,7 @@ export function createScene(host, options) {
     orbits.setPalette(colors);
     constellations.setTheme(theme);
     skyEffects.setTheme(theme);
+    party.setTheme(theme);
     makeCardObjects();
     resize();
   }
@@ -775,7 +792,6 @@ export function createScene(host, options) {
         aim.set(0, 0);
         bursts.reset();
         skyEffects.stopMeteors();
-        if (cardSeed !== undefined) revealStart = elapsed - 2;
         didBurst = true;
         paint();
       } else schedule();
@@ -799,15 +815,17 @@ export function createScene(host, options) {
       }
       paint();
     },
-    reveal(seed) {
+    reveal(seed, name = "") {
       if (cardSeed !== seed) {
         cardSeed = seed;
         makeCardObjects();
       }
       didBurst = paused;
+      nameBurst = paused;
       revealStart = paused ? elapsed - 2 : elapsed;
-      nextFirework = 3.1;
+      nextFirework = 2.65;
       nextMeteor = elapsed + 2.7;
+      if (theme.id === "envelope") marquee.set(name, theme.colors);
       bursts.reset();
       paint();
     },

@@ -1,6 +1,6 @@
 import { hashText } from "./themes.js";
 
-export const SCREEN_DURATION = 20_000;
+export const SCREEN_DURATION = 7_000;
 
 export const birthdayScreens = [
   {

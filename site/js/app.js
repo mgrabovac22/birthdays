@@ -1,5 +1,6 @@
 import { birthdayDay, BIRTHDAY_TIME_ZONE } from "./calendar.js";
 import { birthdayScreens, createScreenCycle, figureOrigin, SCREEN_DURATION, screenTheme } from "./birthday-screens.js";
+import { createGiftGame } from "./gift-game.js";
 import { createPlayground } from "./playground.js";
 import { dayTheme, hashText } from "./themes.js";
 
@@ -15,6 +16,7 @@ const sound = byId("sound-toggle");
 const steps = byId("screen-steps");
 const progress = byId("screen-progress");
 const transition = byId("scene-transition");
+const nameReveal = byId("name-reveal");
 const genericMessage = message.textContent;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const dateFormat = new Intl.DateTimeFormat("hr-HR", {
@@ -23,6 +25,7 @@ const dateFormat = new Intl.DateTimeFormat("hr-HR", {
 
 let paused = reducedMotion.matches;
 let motionOverride = false;
+let gameOpen = false;
 let theme;
 let dailyTheme;
 let screenIndex = 0;
@@ -44,6 +47,16 @@ let brush;
 let dragged = false;
 const playground = createPlayground({ stage, chime: playChime, scatterFallback });
 const screenCycle = createScreenCycle(renderCycle);
+const giftGame = createGiftGame({
+  onOpenChange(open) {
+    gameOpen = open;
+    stage.classList.toggle("game-open", gameOpen);
+    director?.setPaused(paused || gameOpen);
+    syncScreenPlayback();
+  },
+  chime: playChime,
+  canAnimate: () => !paused,
+});
 steps.replaceChildren(...birthdayScreens.map((screen, index) => {
   const button = document.createElement("button");
   button.type = "button";
@@ -108,6 +121,7 @@ function setMotion(value) {
   motion.setAttribute("aria-pressed", String(paused));
   motion.title = paused ? "Nastavi animacije" : "Zaustavi animacije";
   motion.setAttribute("aria-label", motion.title);
+  motion.textContent = paused ? "Nastavi" : "Pauza";
   if (paused) {
     transitionAnimation?.cancel();
     greetingTransition?.cancel();
@@ -116,9 +130,13 @@ function setMotion(value) {
     byId("fallback-sparkles").replaceChildren();
     brush = undefined;
   }
-  director?.setPaused(paused);
+  director?.setPaused(paused || gameOpen);
   playground.setPaused(paused);
-  screenCycle.setPlaying(currentDesign !== undefined && !paused && !document.hidden);
+  syncScreenPlayback();
+}
+
+function syncScreenPlayback() {
+  screenCycle.setPlaying(currentDesign !== undefined && !paused && !gameOpen && !document.hidden);
 }
 
 function playChime(kind, step) {
@@ -153,6 +171,7 @@ function setSound(enabled) {
   sound.setAttribute("aria-pressed", String(enabled));
   sound.title = enabled ? "Isključi zvuk" : "Uključi zvuk";
   sound.setAttribute("aria-label", sound.title);
+  sound.textContent = enabled ? "Utišaj" : "Zvuk";
 }
 
 function scatterFallback(x, y, trailing = false) {
@@ -179,7 +198,10 @@ function reveal() {
   if (currentDesign === undefined) return;
   playground.reset();
   stage.classList.add("is-open");
-  director?.reveal(currentDesign);
+  director?.reveal(currentDesign, recipient.textContent);
+  nameReveal.classList.remove("is-flaring");
+  nameReveal.textContent = theme.id === "envelope" ? recipient.textContent : "";
+  if (nameReveal.textContent && !paused) requestAnimationFrame(() => nameReveal.classList.add("is-flaring"));
   if (!director?.available && !paused) {
     const [x, y] = figureOrigin(theme, stage.clientWidth);
     scatterFallback(x, y);
@@ -193,6 +215,7 @@ function showGreeting(index) {
   recipient.hidden = !card;
   recipient.textContent = card?.name ?? "";
   message.textContent = card?.message ?? genericMessage;
+  giftGame.setGreeting(card?.name ?? "", seed);
   byId("greeting-label").textContent = card ? "DANAS SLAVIMO" : "ROĐENDANSKA ČESTITKA";
   [...celebrants.children].forEach((button, i) => button.setAttribute("aria-pressed", String(i === index)));
   if (currentDesign === seed) return;
@@ -200,7 +223,7 @@ function showGreeting(index) {
   greeting.classList.remove("is-revealing");
   requestAnimationFrame(() => greeting.classList.add("is-revealing"));
   reveal();
-  screenCycle.setPlaying(!paused && !document.hidden);
+  syncScreenPlayback();
 }
 
 function setCards(nextCards) {
@@ -349,7 +372,10 @@ trigger.addEventListener("click", (event) => {
   }
   playChime("spark");
 });
-byId("replay").addEventListener("click", reveal);
+byId("replay").addEventListener("click", () => {
+  screenCycle.select(screenIndex);
+  reveal();
+});
 
 window.addEventListener("pagehide", () => {
   request?.abort();
@@ -360,12 +386,12 @@ window.addEventListener("pagehide", () => {
 });
 window.addEventListener("pageshow", () => {
   updateDay();
-  screenCycle.setPlaying(currentDesign !== undefined && !paused && !document.hidden);
+  syncScreenPlayback();
 });
 window.addEventListener("online", updateDay);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) updateDay();
-  screenCycle.setPlaying(currentDesign !== undefined && !paused && !document.hidden);
+  syncScreenPlayback();
 });
 setMotion(paused);
 updateDay();
@@ -373,11 +399,11 @@ updateDay();
 import("./scene.js").then(({ createScene }) => {
   director = createScene(byId("stage-canvas"), {
     theme,
-    paused,
+    paused: paused || gameOpen,
     availability: (available) => stage.classList.toggle("has-webgl", available),
   });
   playground.setDirector(director);
-  if (currentDesign !== undefined) director.reveal(currentDesign);
+  if (currentDesign !== undefined) director.reveal(currentDesign, recipient.textContent);
 }).catch(() => {
   // The artwork and controls also work on the CSS fallback.
 });

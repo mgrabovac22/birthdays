@@ -22,20 +22,13 @@
       <div class="fallback-reveal" aria-hidden="true"><span id="fallback-symbol">✦</span></div>
       <div class="sky-effects" id="sky-effects" aria-hidden="true"></div>
       <div class="scene-transition" id="scene-transition" aria-hidden="true"></div>
+      <div class="name-reveal" id="name-reveal" aria-hidden="true"></div>
       <button class="stage-trigger" id="stage-trigger" type="button" aria-label="Rasprši zvjezdanu prašinu"></button>
       <div class="stage-shade" aria-hidden="true"></div>
 
       <header class="stage-header">
-        <div class="brand"><span class="brand-star" aria-hidden="true">✦</span><span>Wishcraft<span class="brand-dot">.</span></span></div>
-        <div class="stage-header-right">
-          <div class="date-pill"><span aria-hidden="true">✧</span><time id="today">Danas</time></div>
-          <button class="stage-control" id="sound-toggle" type="button" aria-label="Uključi zvuk" aria-pressed="false" title="Uključi zvuk">
-            <span class="icon sound" aria-hidden="true"></span>
-          </button>
-          <button class="stage-control" id="motion-toggle" type="button" aria-label="Zaustavi animacije" aria-pressed="false" title="Zaustavi animacije">
-            <span class="icon pause" aria-hidden="true"></span>
-          </button>
-        </div>
+        <p class="welcome-line">Dobro došli na slavlje!</p>
+        <time class="today" id="today">Danas</time>
       </header>
 
       <article class="greeting" id="greeting" aria-labelledby="greeting-title">
@@ -62,6 +55,7 @@
           <span class="caption-label" id="screen-counter">1 / 5</span>
           <h2 id="scene-name">Zvjezdana kuverta</h2>
           <p class="interaction-hint"><span aria-hidden="true">✧</span> Dodirni nebo ili povuci za zvjezdanu prašinu.</p>
+          <button class="game-launch" id="gift-game-open" type="button" aria-haspopup="dialog"><span aria-hidden="true">🎁</span> Uđi u igru</button>
         </div>
         <nav class="screen-picker" id="screen-picker" aria-label="Scene čestitke">
           <div class="screen-steps" id="screen-steps"></div>
@@ -74,9 +68,43 @@
             <button class="sky-action" id="trace-button" type="button" aria-pressed="false" aria-controls="trace-layer"><span aria-hidden="true">✧</span> Spoji zvijezde</button>
             <button class="sky-action" id="wish-button" type="button" aria-pressed="false" aria-controls="wish-layer"><span aria-hidden="true">♨</span> Zaželi želju</button>
             <button class="sky-action" id="replay" type="button"><span aria-hidden="true">↻</span> Ponovi</button>
+            <button class="sky-action utility-action" id="sound-toggle" type="button" aria-label="Uključi zvuk" aria-pressed="false">Zvuk</button>
+            <button class="sky-action utility-action" id="motion-toggle" type="button" aria-label="Zaustavi animacije" aria-pressed="false">Pauza</button>
           </div>
         </section>
       </footer>
     </main>
+    <dialog class="gift-game" id="gift-game" aria-labelledby="gift-game-title" aria-describedby="gift-game-intro">
+      <div class="game-panel">
+        <div class="game-confetti" id="game-confetti" aria-hidden="true"></div>
+        <div class="game-header">
+          <div>
+            <p class="game-count" id="gift-game-count"></p>
+            <h2 id="gift-game-title">Otvori poklone</h2>
+          </div>
+          <button class="game-close" id="gift-game-close" type="button">Natrag na slavlje</button>
+        </div>
+        <p id="gift-game-intro">U svakom poklonu čeka te drugačije rođendansko iznenađenje.</p>
+        <div class="gift-grid" id="gift-grid">
+          <button class="gift-choice rose-gift" type="button" aria-pressed="false" data-gift="0">
+            <span class="gift-art" aria-hidden="true"><i class="gift-front"></i><i class="gift-side"></i><i class="gift-lid"></i><b class="gift-bow"></b></span>
+            <span>Ružičasti poklon</span>
+          </button>
+          <button class="gift-choice gold-gift" type="button" aria-pressed="false" data-gift="1">
+            <span class="gift-art" aria-hidden="true"><i class="gift-front"></i><i class="gift-side"></i><i class="gift-lid"></i><b class="gift-bow"></b></span>
+            <span>Zlatni poklon</span>
+          </button>
+          <button class="gift-choice violet-gift" type="button" aria-pressed="false" data-gift="2">
+            <span class="gift-art" aria-hidden="true"><i class="gift-front"></i><i class="gift-side"></i><i class="gift-lid"></i><b class="gift-bow"></b></span>
+            <span>Ljubičasti poklon</span>
+          </button>
+        </div>
+        <div class="gift-reward" id="gift-reward" aria-live="polite" aria-atomic="true" hidden>
+          <h3 id="gift-reward-title"></h3>
+          <p id="gift-reward-message"></p>
+        </div>
+        <button class="game-again" id="gift-game-again" type="button" hidden>Igraj ponovno</button>
+      </div>
+    </dialog>
   </body>
 </html>

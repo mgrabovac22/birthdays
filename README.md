@@ -1,6 +1,8 @@
 # Wishcraft
 
-Wishcraft otvara rođendansku čestitku preko cijelog zaslona čim posjetitelj otvori GitHub Pages stranicu. Ako danas netko slavi, odmah se prikažu njegovo ime i poruka. Kad nema slavljenika, prikazuje se opća čestitka. Pet 3D scena izmjenjuje se svakih 20 sekundi i zatim kreće ispočetka. Scene možeš odabrati i ručno, a uz njih možeš crtati zvjezdanom prašinom, povezivati zvijezde, ugasiti svjećicu, pokrenuti meteore ili ponoviti animaciju. Pauza animacija zaustavlja i izmjenu scena.
+Wishcraft otvara rođendansku čestitku preko cijelog zaslona čim posjetitelj otvori GitHub Pages stranicu. Ako danas netko slavi, odmah se prikažu njegovo ime i poruka. Nakon otvaranja prve kuverte ime izleti prema gledatelju kao 3D natpis. Pet scena izmjenjuje se svakih 7 sekundi uz balone, konfete i vatromet. Slastičar i domaćin prelaze preko kadra i mašu, a plesačica se zavrti uz vatromet. Kad nema slavljenika, prikazuje se opća čestitka.
+
+Gumb **Uđi u igru** otvara tri poklona s rođendanskom čestitkom, šaljivom porukom i kratkim izazovom. Dok je igra otvorena, izmjena scena miruje. Scene možeš odabrati i ručno, a pauza animacija zaustavlja i njihovu izmjenu.
 
 ## Dodaj jednu osobu
 
@@ -22,6 +24,8 @@ Datum je u formatu `MM-DD`. Datum `02-29` otvara čestitku 29. veljače u prijes
 5. Podijeli običnu adresu GitHub Pages stranice.
 
 GitHub Actions čita pojedinačne secrete i objavljuje samo imena i poruke za današnji datum u `today.json`. Zakazane objave su u 00:03 i 00:23 po zagrebačkom vremenu. Stranica mijenja nebo i uklanja jučerašnju čestitku u ponoć. Opća čestitka je vidljiva dok GitHub Pages ne objavi nove podatke. GitHub može odgoditi zakazani workflow ili ga isključiti nakon 60 dana neaktivnosti javnog repozitorija, pa postoji i ručno pokretanje. [Zakazani GitHub Actions workflowi](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+
+Za provjeru izvora otvori zapis koraka **Prepare today's public greeting** u stvarnoj objavi. Prikazuje broj pročitanih `BIRTHDAY_*` zapisa i broj objavljenih današnjih čestitki. Stranica preko mreže učitava samo javni `today.json`.
 
 ## Isprobaj s testnim podacima
 

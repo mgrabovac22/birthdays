@@ -56,14 +56,18 @@ async function main() {
     records = [{ ...fixture[index], date: slot }];
   }
   const output = resolve(out);
+  const payload = todayPayload(records, now);
   const temporary = `${output}.${randomBytes(6).toString("hex")}.tmp`;
   try {
-    await writeFile(temporary, `${JSON.stringify(todayPayload(records, now))}\n`, { flag: "wx" });
+    await writeFile(temporary, `${JSON.stringify(payload)}\n`, { flag: "wx" });
     await rename(temporary, output);
   } finally {
     await rm(temporary, { force: true });
   }
-  console.log(sample ? "Testna čestitka spremna." : "Današnja datoteka spremna.");
+  const source = process.env.GITHUB_ACTIONS === "true" ? "GitHub Actions" : "Lokalna izgradnja";
+  console.log(sample
+    ? "Testna čestitka spremna."
+    : `${source}: ${records.length} zapisa iz BIRTHDAY_*; današnje čestitke: ${payload.cards.length}.`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

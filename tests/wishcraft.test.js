@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { readBirthdaySecrets, todayPayload } from "../scripts/publish-today.mjs";
 import { birthdayScreens, createScreenCycle, SCREEN_DURATION, screenTheme } from "../site/js/birthday-screens.js";
+import { giftDeck } from "../site/js/gift-game.js";
 import { birthdayDay } from "../site/js/calendar.js";
 import { dayTheme, traceStars } from "../site/js/themes.js";
 
@@ -66,7 +67,7 @@ test("the date and scene switch at Zagreb midnight in winter and summer", () => 
   assert.notDeepEqual(traceStars(dayTheme(late).seed), traceStars(dayTheme(morning).seed));
 });
 
-test("all five scenes rotate in 20-second steps and resume after pausing", () => {
+test("all five scenes rotate in 7-second steps and resume after pausing", () => {
   let now = 0;
   let pending;
   const updates = [];
@@ -86,21 +87,21 @@ test("all five scenes rotate in 20-second steps and resume after pausing", () =>
     }
     now = target;
   };
-  assert.equal(SCREEN_DURATION, 20_000);
+  assert.equal(SCREEN_DURATION, 7_000);
   cycle.setPlaying(true);
-  advance(19_999);
+  advance(6_999);
   assert.equal(updates.at(-1).index, 0);
   advance(1);
   assert.equal(updates.at(-1).index, 1);
   advance(4 * SCREEN_DURATION);
   assert.deepEqual(updates.map(({ index }) => index), [0, 1, 2, 3, 4, 0]);
-  advance(7_000);
+  advance(2_500);
   cycle.setPlaying(false);
-  assert.equal(updates.at(-1).remaining, 13_000);
+  assert.equal(updates.at(-1).remaining, 4_500);
   advance(30_000);
   assert.equal(updates.at(-1).index, 0);
   cycle.setPlaying(true);
-  advance(13_000);
+  advance(4_500);
   assert.equal(updates.at(-1).index, 1);
   cycle.select(4);
   assert.equal(updates.at(-1).index, 4);
@@ -109,6 +110,15 @@ test("all five scenes rotate in 20-second steps and resume after pausing", () =>
 
   const today = dayTheme(new Date("2026-11-21T16:00:00Z"));
   assert.equal(new Set(birthdayScreens.map((_, i) => screenTheme(today, i).id)).size, 5);
+});
+
+test("each round of the gift game includes three distinct rewards and the recipient's greeting", () => {
+  const firstRound = giftDeck("Željko", 145622);
+  assert.equal(firstRound.length, 3);
+  assert.equal(new Set(firstRound.map(([title]) => title)).size, 3);
+  assert.ok(firstRound.some(([title, message]) => title.includes("Željko") && message.includes("Sretan rođendan")));
+  assert.deepEqual(giftDeck("Željko", 145622), firstRound);
+  assert.notDeepEqual(giftDeck("Željko", 145622, 1), firstRound);
 });
 
 test("test builds publish a single fictional greeting and production only exports today's matches", async (t) => {
