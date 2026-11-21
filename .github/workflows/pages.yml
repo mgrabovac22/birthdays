@@ -1,0 +1,167 @@
+name: Deploy Wishcraft to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "3,23 0 * * *"
+      timezone: "Europe/Zagreb"
+  workflow_dispatch:
+    inputs:
+      test_cards:
+        description: Publish a fictional card for today
+        type: boolean
+        default: false
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  build:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:site
+      - name: Prepare today's test card
+        if: inputs.test_cards == true
+        run: node scripts/publish-today.mjs --sample --out dist/today.json
+      - name: Prepare today's public greeting
+        if: inputs.test_cards != true
+        env:
+          BIRTHDAY_01: ${{ secrets.BIRTHDAY_01 }}
+          BIRTHDAY_02: ${{ secrets.BIRTHDAY_02 }}
+          BIRTHDAY_03: ${{ secrets.BIRTHDAY_03 }}
+          BIRTHDAY_04: ${{ secrets.BIRTHDAY_04 }}
+          BIRTHDAY_05: ${{ secrets.BIRTHDAY_05 }}
+          BIRTHDAY_06: ${{ secrets.BIRTHDAY_06 }}
+          BIRTHDAY_07: ${{ secrets.BIRTHDAY_07 }}
+          BIRTHDAY_08: ${{ secrets.BIRTHDAY_08 }}
+          BIRTHDAY_09: ${{ secrets.BIRTHDAY_09 }}
+          BIRTHDAY_10: ${{ secrets.BIRTHDAY_10 }}
+          BIRTHDAY_11: ${{ secrets.BIRTHDAY_11 }}
+          BIRTHDAY_12: ${{ secrets.BIRTHDAY_12 }}
+          BIRTHDAY_13: ${{ secrets.BIRTHDAY_13 }}
+          BIRTHDAY_14: ${{ secrets.BIRTHDAY_14 }}
+          BIRTHDAY_15: ${{ secrets.BIRTHDAY_15 }}
+          BIRTHDAY_16: ${{ secrets.BIRTHDAY_16 }}
+          BIRTHDAY_17: ${{ secrets.BIRTHDAY_17 }}
+          BIRTHDAY_18: ${{ secrets.BIRTHDAY_18 }}
+          BIRTHDAY_19: ${{ secrets.BIRTHDAY_19 }}
+          BIRTHDAY_20: ${{ secrets.BIRTHDAY_20 }}
+          BIRTHDAY_21: ${{ secrets.BIRTHDAY_21 }}
+          BIRTHDAY_22: ${{ secrets.BIRTHDAY_22 }}
+          BIRTHDAY_23: ${{ secrets.BIRTHDAY_23 }}
+          BIRTHDAY_24: ${{ secrets.BIRTHDAY_24 }}
+          BIRTHDAY_25: ${{ secrets.BIRTHDAY_25 }}
+          BIRTHDAY_26: ${{ secrets.BIRTHDAY_26 }}
+          BIRTHDAY_27: ${{ secrets.BIRTHDAY_27 }}
+          BIRTHDAY_28: ${{ secrets.BIRTHDAY_28 }}
+          BIRTHDAY_29: ${{ secrets.BIRTHDAY_29 }}
+          BIRTHDAY_30: ${{ secrets.BIRTHDAY_30 }}
+          BIRTHDAY_31: ${{ secrets.BIRTHDAY_31 }}
+          BIRTHDAY_32: ${{ secrets.BIRTHDAY_32 }}
+          BIRTHDAY_33: ${{ secrets.BIRTHDAY_33 }}
+          BIRTHDAY_34: ${{ secrets.BIRTHDAY_34 }}
+          BIRTHDAY_35: ${{ secrets.BIRTHDAY_35 }}
+          BIRTHDAY_36: ${{ secrets.BIRTHDAY_36 }}
+          BIRTHDAY_37: ${{ secrets.BIRTHDAY_37 }}
+          BIRTHDAY_38: ${{ secrets.BIRTHDAY_38 }}
+          BIRTHDAY_39: ${{ secrets.BIRTHDAY_39 }}
+          BIRTHDAY_40: ${{ secrets.BIRTHDAY_40 }}
+          BIRTHDAY_41: ${{ secrets.BIRTHDAY_41 }}
+          BIRTHDAY_42: ${{ secrets.BIRTHDAY_42 }}
+          BIRTHDAY_43: ${{ secrets.BIRTHDAY_43 }}
+          BIRTHDAY_44: ${{ secrets.BIRTHDAY_44 }}
+          BIRTHDAY_45: ${{ secrets.BIRTHDAY_45 }}
+          BIRTHDAY_46: ${{ secrets.BIRTHDAY_46 }}
+          BIRTHDAY_47: ${{ secrets.BIRTHDAY_47 }}
+          BIRTHDAY_48: ${{ secrets.BIRTHDAY_48 }}
+          BIRTHDAY_49: ${{ secrets.BIRTHDAY_49 }}
+          BIRTHDAY_50: ${{ secrets.BIRTHDAY_50 }}
+          BIRTHDAY_51: ${{ secrets.BIRTHDAY_51 }}
+          BIRTHDAY_52: ${{ secrets.BIRTHDAY_52 }}
+          BIRTHDAY_53: ${{ secrets.BIRTHDAY_53 }}
+          BIRTHDAY_54: ${{ secrets.BIRTHDAY_54 }}
+          BIRTHDAY_55: ${{ secrets.BIRTHDAY_55 }}
+          BIRTHDAY_56: ${{ secrets.BIRTHDAY_56 }}
+          BIRTHDAY_57: ${{ secrets.BIRTHDAY_57 }}
+          BIRTHDAY_58: ${{ secrets.BIRTHDAY_58 }}
+          BIRTHDAY_59: ${{ secrets.BIRTHDAY_59 }}
+          BIRTHDAY_60: ${{ secrets.BIRTHDAY_60 }}
+          BIRTHDAY_61: ${{ secrets.BIRTHDAY_61 }}
+          BIRTHDAY_62: ${{ secrets.BIRTHDAY_62 }}
+          BIRTHDAY_63: ${{ secrets.BIRTHDAY_63 }}
+          BIRTHDAY_64: ${{ secrets.BIRTHDAY_64 }}
+          BIRTHDAY_65: ${{ secrets.BIRTHDAY_65 }}
+          BIRTHDAY_66: ${{ secrets.BIRTHDAY_66 }}
+          BIRTHDAY_67: ${{ secrets.BIRTHDAY_67 }}
+          BIRTHDAY_68: ${{ secrets.BIRTHDAY_68 }}
+          BIRTHDAY_69: ${{ secrets.BIRTHDAY_69 }}
+          BIRTHDAY_70: ${{ secrets.BIRTHDAY_70 }}
+          BIRTHDAY_71: ${{ secrets.BIRTHDAY_71 }}
+          BIRTHDAY_72: ${{ secrets.BIRTHDAY_72 }}
+          BIRTHDAY_73: ${{ secrets.BIRTHDAY_73 }}
+          BIRTHDAY_74: ${{ secrets.BIRTHDAY_74 }}
+          BIRTHDAY_75: ${{ secrets.BIRTHDAY_75 }}
+          BIRTHDAY_76: ${{ secrets.BIRTHDAY_76 }}
+          BIRTHDAY_77: ${{ secrets.BIRTHDAY_77 }}
+          BIRTHDAY_78: ${{ secrets.BIRTHDAY_78 }}
+          BIRTHDAY_79: ${{ secrets.BIRTHDAY_79 }}
+          BIRTHDAY_80: ${{ secrets.BIRTHDAY_80 }}
+          BIRTHDAY_81: ${{ secrets.BIRTHDAY_81 }}
+          BIRTHDAY_82: ${{ secrets.BIRTHDAY_82 }}
+          BIRTHDAY_83: ${{ secrets.BIRTHDAY_83 }}
+          BIRTHDAY_84: ${{ secrets.BIRTHDAY_84 }}
+          BIRTHDAY_85: ${{ secrets.BIRTHDAY_85 }}
+          BIRTHDAY_86: ${{ secrets.BIRTHDAY_86 }}
+          BIRTHDAY_87: ${{ secrets.BIRTHDAY_87 }}
+          BIRTHDAY_88: ${{ secrets.BIRTHDAY_88 }}
+          BIRTHDAY_89: ${{ secrets.BIRTHDAY_89 }}
+          BIRTHDAY_90: ${{ secrets.BIRTHDAY_90 }}
+          BIRTHDAY_91: ${{ secrets.BIRTHDAY_91 }}
+          BIRTHDAY_92: ${{ secrets.BIRTHDAY_92 }}
+          BIRTHDAY_93: ${{ secrets.BIRTHDAY_93 }}
+          BIRTHDAY_94: ${{ secrets.BIRTHDAY_94 }}
+          BIRTHDAY_95: ${{ secrets.BIRTHDAY_95 }}
+          BIRTHDAY_96: ${{ secrets.BIRTHDAY_96 }}
+          BIRTHDAY_97: ${{ secrets.BIRTHDAY_97 }}
+          BIRTHDAY_98: ${{ secrets.BIRTHDAY_98 }}
+          BIRTHDAY_99: ${{ secrets.BIRTHDAY_99 }}
+          BIRTHDAY_100: ${{ secrets.BIRTHDAY_100 }}
+        run: node scripts/publish-today.mjs --out dist/today.json
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: dist
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Rođendanska čestitka pod nebom koje se mijenja svaki dan.">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#170d23">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+    <link rel="icon" href="./assets/star.png" type="image/png">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Wishcraft — Sretan rođendan!</title>
+    <script type="module" src="./js/app.js"></script>
+  </head>
+  <body>
+    <main class="stage" id="stage" aria-label="Rođendanska čestitka">
+      <div class="reveal-backdrop" aria-hidden="true"></div>
+      <div class="artwork" aria-hidden="true"><img src="./assets/celestial-envelope.webp" width="1536" height="1024" fetchpriority="high" alt=""></div>
+      <div class="orbital-lines" aria-hidden="true"><i></i><i></i><i></i><span>✦</span><b>✧</b></div>
+      <div class="stage-canvas" id="stage-canvas" aria-hidden="true"></div>
+      <div class="fallback-sparkles" id="fallback-sparkles" aria-hidden="true"></div>
+      <div class="fallback-reveal" aria-hidden="true"><span>✦</span></div>
+      <div class="sky-effects" id="sky-effects" aria-hidden="true"></div>
+      <button class="stage-trigger" id="stage-trigger" type="button" aria-label="Rasprši zvjezdanu prašinu"></button>
+      <div class="stage-shade" aria-hidden="true"></div>
+
+      <header class="stage-header">
+        <div class="brand"><span class="brand-star" aria-hidden="true">✦</span><span>Wishcraft<span class="brand-dot">.</span></span></div>
+        <div class="stage-header-right">
+          <div class="date-pill"><span aria-hidden="true">✧</span><time id="today">Danas</time></div>
+          <button class="stage-control" id="sound-toggle" type="button" aria-label="Uključi zvuk" aria-pressed="false" title="Uključi zvuk">
+            <span class="icon sound" aria-hidden="true"></span>
+          </button>
+          <button class="stage-control" id="motion-toggle" type="button" aria-label="Zaustavi animacije" aria-pressed="false" title="Zaustavi animacije">
+            <span class="icon pause" aria-hidden="true"></span>
+          </button>
+        </div>
+      </header>
+
+      <article class="greeting" id="greeting" aria-labelledby="greeting-title">
+        <p class="eyebrow"><span aria-hidden="true">✦</span> <span id="greeting-label">ROĐENDANSKA ČESTITKA</span></p>
+        <h1 id="greeting-title">Sretan<br><em>rođendan!</em></h1>
+        <div class="greeting-copy" aria-live="polite">
+          <p class="recipient" id="recipient" hidden></p>
+          <p class="message" id="message">Neka ti današnji dan donese nešto lijepo za pamćenje i barem jednu želju koja će se ispuniti.</p>
+        </div>
+        <div class="celebrants" id="celebrants" role="group" aria-label="Današnji slavljenici" hidden></div>
+      </article>
+
+      <div class="trace-layer" id="trace-layer" role="group" aria-label="Današnje zviježđe" hidden>
+        <div class="trace-links" id="trace-links" aria-hidden="true"></div>
+        <div id="trace-stars"></div>
+      </div>
+      <div class="wish-layer" id="wish-layer" hidden>
+        <div class="fallback-candle" aria-hidden="true"><span></span></div>
+        <button class="wish-button" id="candle-button" type="button">Ugasi svjećicu</button>
+      </div>
+
+      <footer class="stage-footer">
+        <div class="sky-caption">
+          <span class="caption-label">DANAŠNJE NEBO</span>
+          <h2 id="scene-name">Zvjezdani valcer</h2>
+          <p class="interaction-hint"><span aria-hidden="true">✧</span> Dodirni nebo ili povuci za zvjezdanu prašinu.</p>
+        </div>
+        <section class="playground" aria-label="Igra pod zvijezdama">
+          <p class="playground-status" id="playground-status" role="status"></p>
+          <div class="playground-actions">
+            <button class="sky-action" id="meteor-button" type="button"><span aria-hidden="true">☄</span> Meteori</button>
+            <button class="sky-action" id="trace-button" type="button" aria-pressed="false" aria-controls="trace-layer"><span aria-hidden="true">✧</span> Spoji zvijezde</button>
+            <button class="sky-action" id="wish-button" type="button" aria-pressed="false" aria-controls="wish-layer"><span aria-hidden="true">♨</span> Zaželi želju</button>
+            <button class="sky-action" id="replay" type="button"><span aria-hidden="true">↻</span> Ponovi</button>
+          </div>
+        </section>
+      </footer>
+    </main>
+  </body>
+</html>

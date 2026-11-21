@@ -1,0 +1,25 @@
+{
+  "name": "wishcraft",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "scripts": {
+    "build:site": "node scripts/build.mjs",
+    "build": "npm run build:site && node --env-file-if-exists=.env scripts/publish-today.mjs --sample-if-missing --out dist/today.json",
+    "build:test": "npm run build:site && node scripts/publish-today.mjs --sample --out dist/today.json",
+    "dev": "npm run build && npm run preview",
+    "preview": "node scripts/serve.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@fontsource-variable/dm-sans": "5.3.0",
+    "@fontsource/dm-serif-display": "5.3.0",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
